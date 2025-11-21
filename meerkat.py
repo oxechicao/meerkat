@@ -137,6 +137,65 @@ def get_current_branch():
     return branch if branch else "main"
 
 
+def get_git_status_info():
+    """Get information about staged changes including files and line counts."""
+    # Get list of staged files
+    status_output = run_command(
+        "git diff --cached --name-status",
+        capture_output=True,
+        quiet=True
+    )
+
+    if not status_output:
+        return None
+
+    files = []
+    lines = status_output.split('\n')
+
+    for line in lines:
+        if not line.strip():
+            continue
+
+        parts = line.split('\t')
+        if len(parts) >= 2:
+            status = parts[0]
+            filename = parts[1]
+            files.append({'status': status, 'name': filename})
+
+    # Get line statistics
+    stat_output = run_command(
+        "git diff --cached --numstat",
+        capture_output=True,
+        quiet=True
+    )
+
+    total_additions = 0
+    total_deletions = 0
+
+    if stat_output:
+        stat_lines = stat_output.split('\n')
+        for line in stat_lines:
+            if not line.strip():
+                continue
+
+            parts = line.split('\t')
+            if len(parts) >= 2:
+                try:
+                    additions = int(parts[0]) if parts[0] != '-' else 0
+                    deletions = int(parts[1]) if parts[1] != '-' else 0
+                    total_additions += additions
+                    total_deletions += deletions
+                except ValueError:
+                    continue
+
+    return {
+        'files': files,
+        'total_files': len(files),
+        'additions': total_additions,
+        'deletions': total_deletions
+    }
+
+
 def build_branch_name(config, prefix_type, branch_name, custom_prefix, no_prefix):
     """Build the full branch name with prefix."""
     if no_prefix:
@@ -192,11 +251,18 @@ def get_ai_commit_message(config, story_file=None, quiet=False):
         print_error("No staged changes to commit")
         return None
 
+    # Log AI context information
+    print_message("\nGenerating commit message with AI...", quiet)
+    print_message("Context being used:", quiet)
+    print_message("  - Git diff (staged changes)", quiet)
+
     # Build AI command
     if agent_path:
         ai_command = agent_path
+        print_message(f"  - AI Agent: {agent_path}", quiet)
     else:
         ai_command = agent_name
+        print_message(f"  - AI Agent: {agent_name}", quiet)
 
     # Build prompt
     prompt = "Generate a git commit message for the following changes:\n\n"
@@ -206,8 +272,9 @@ def get_ai_commit_message(config, story_file=None, quiet=False):
         with open(story_file, 'r') as f:
             story_content = f.read()
             prompt = f"Story context:\n{story_content}\n\n{prompt}"
+            print_message(f"  - Story file: {story_file}", quiet)
 
-    print_message("Generating commit message with AI...", quiet)
+    print_message("", quiet)
 
     # For now, using a placeholder - in real implementation,
     # this would call the actual AI agent
@@ -367,6 +434,25 @@ def handle_save_command(args, config):
     if not run_command("git add .", quiet=quiet):
         return 1
 
+    # Get and display status information
+    status_info = get_git_status_info()
+    if status_info and not quiet:
+        print_message(f"\nStaged {status_info['total_files']} file(s):", quiet)
+        for file_info in status_info['files']:
+            status_label = {
+                'M': 'Modified',
+                'A': 'Added',
+                'D': 'Deleted',
+                'R': 'Renamed'
+            }.get(file_info['status'], file_info['status'])
+            print_message(f"  [{status_label}] {file_info['name']}", quiet)
+
+        print_message(
+            f"\n+{status_info['additions']} lines added, "
+            f"-{status_info['deletions']} lines removed\n",
+            quiet
+        )
+
     # Perform rebase or merge if requested
     if args.rebase:
         if not perform_rebase(quiet):
@@ -380,7 +466,13 @@ def handle_save_command(args, config):
     if not commit_message:
         return 1
 
-    print_message(f"Commit message: {commit_message}", quiet)
+    # Display commit message preview
+    final_message = f"WIP: {commit_message}" if args.wip else commit_message
+    print_message("Commit message preview:", quiet)
+    print_message("─" * 50, quiet)
+    print_message(final_message, quiet)
+    print_message("─" * 50, quiet)
+    print_message("", quiet)
 
     # Create commit
     commit_command = build_commit_command(config, commit_message, args.wip)

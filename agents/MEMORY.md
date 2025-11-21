@@ -507,3 +507,273 @@ mrkt update --close          # Commit, merge to main, and push
 - ✅ Functional paradigm maintained
 - ✅ No code duplication
 - ✅ Clear separation of concerns
+
+---
+
+## Task: 2 - FEATURE: Add Better Logs
+
+### Overview
+Enhanced logging throughout the SAVE and UPDATE commands to provide users with better visibility into what the CLI is doing. This includes showing files being staged, line statistics, AI context information, and commit message previews.
+
+### Requirements from Feature Specification
+1. **When adding changes:**
+   - Write better logs to help users understand what's happening
+   - Show all files being added
+   - Display number of lines added and removed
+
+2. **When creating commit messages:**
+   - Explain what context is being used
+   - Show the commit message before executing the commit
+
+### Implementation Steps
+
+#### Step 1: Create get_git_status_info() function
+**Action:** Created a new utility function to gather detailed information about staged changes.
+
+**Files Modified:**
+- `meerkat.py` - Added function after `get_current_branch()` at line ~141
+
+**Function Details:**
+```python
+def get_git_status_info():
+    """Get information about staged changes including files and line counts."""
+```
+
+**Functionality:**
+1. Runs `git diff --cached --name-status` to get list of staged files with their status
+2. Parses file statuses (M=Modified, A=Added, D=Deleted, R=Renamed)
+3. Runs `git diff --cached --numstat` to get line additions/deletions
+4. Aggregates statistics across all files
+
+**Returns:**
+- Dictionary with:
+  - `files`: List of file objects with status and name
+  - `total_files`: Count of staged files
+  - `additions`: Total lines added
+  - `deletions`: Total lines removed
+
+**Error Handling:**
+- Returns `None` if no staged changes
+- Handles non-numeric values in numstat output (binary files)
+- Continues processing even if individual lines fail to parse
+
+#### Step 2: Enhanced File Staging Logs in handle_save_command
+**Action:** Updated the staging section to show detailed information about what files are being committed.
+
+**Files Modified:**
+- `meerkat.py` - Modified `handle_save_command()` at line ~420
+
+**Changes Made:**
+```python
+# Get and display status information
+status_info = get_git_status_info()
+if status_info and not quiet:
+    print_message(f"\nStaged {status_info['total_files']} file(s):", quiet)
+    for file_info in status_info['files']:
+        status_label = {
+            'M': 'Modified',
+            'A': 'Added',
+            'D': 'Deleted',
+            'R': 'Renamed'
+        }.get(file_info['status'], file_info['status'])
+        print_message(f"  [{status_label}] {file_info['name']}", quiet)
+    
+    print_message(
+        f"\n+{status_info['additions']} lines added, "
+        f"-{status_info['deletions']} lines removed\n",
+        quiet
+    )
+```
+
+**Output Example:**
+```
+Staging all changes...
+
+Staged 3 file(s):
+  [Modified] meerkat.py
+  [Added] agents/features/2_feat_add_better_logs.md
+  [Modified] agents/MEMORY.md
+
++150 lines added, -20 lines removed
+```
+
+**Benefits:**
+- Users can see exactly which files are being committed
+- Clear indication of file operation type (Modified, Added, etc.)
+- Summary of code impact with line statistics
+- Respects quiet mode to avoid cluttering output
+
+#### Step 3: Add AI Context Logging in get_ai_commit_message
+**Action:** Enhanced the AI commit message generation to explain what context is being used.
+
+**Files Modified:**
+- `meerkat.py` - Modified `get_ai_commit_message()` at line ~241
+
+**Changes Made:**
+```python
+# Log AI context information
+print_message("\nGenerating commit message with AI...", quiet)
+print_message("Context being used:", quiet)
+print_message("  - Git diff (staged changes)", quiet)
+
+# Build AI command
+if agent_path:
+    ai_command = agent_path
+    print_message(f"  - AI Agent: {agent_path}", quiet)
+else:
+    ai_command = agent_name
+    print_message(f"  - AI Agent: {agent_name}", quiet)
+
+# Build prompt
+prompt = "Generate a git commit message for the following changes:\n\n"
+prompt += diff
+
+if story_file and os.path.exists(story_file):
+    with open(story_file, 'r') as f:
+        story_content = f.read()
+        prompt = f"Story context:\n{story_content}\n\n{prompt}"
+        print_message(f"  - Story file: {story_file}", quiet)
+
+print_message("", quiet)
+```
+
+**Output Example:**
+```
+Generating commit message with AI...
+Context being used:
+  - Git diff (staged changes)
+  - AI Agent: copilot
+  - Story file: story.md
+```
+
+**Benefits:**
+- Transparency about what AI agent is being used
+- Shows when story context is included
+- Helps users debug if commit messages aren't as expected
+- Clear separation between context info and next steps
+
+#### Step 4: Display Commit Message Preview
+**Action:** Added a preview of the commit message before executing the commit command.
+
+**Files Modified:**
+- `meerkat.py` - Modified `handle_save_command()` at line ~466
+
+**Changes Made:**
+```python
+# Display commit message preview
+final_message = f"WIP: {commit_message}" if args.wip else commit_message
+print_message("Commit message preview:", quiet)
+print_message("─" * 50, quiet)
+print_message(final_message, quiet)
+print_message("─" * 50, quiet)
+print_message("", quiet)
+
+# Create commit
+commit_command = build_commit_command(config, commit_message, args.wip)
+```
+
+**Output Example:**
+```
+Commit message preview:
+──────────────────────────────────────────────────
+feat: Add better logging for file staging and AI context
+
+Enhanced user visibility by showing:
+- List of staged files with operation types
+- Line addition/deletion statistics  
+- AI context being used for commit messages
+- Commit message preview before execution
+──────────────────────────────────────────────────
+```
+
+**Benefits:**
+- Users can review the message before it's committed
+- Shows the final message including WIP prefix if applied
+- Visual separation with lines makes it easy to read
+- Allows users to Ctrl+C if message is incorrect
+
+### Code Quality Verification
+
+**Flake8 Linting:**
+- ✅ Passed: `flake8 meerkat.py --max-line-length=100`
+- Fixed one f-string without placeholders issue
+- No remaining linting errors
+
+**PEP8 Compliance:**
+- ✅ Proper function naming (`get_git_status_info`)
+- ✅ Docstrings for new functions
+- ✅ Appropriate spacing and formatting
+- ✅ Consistent error handling
+
+**Functional Paradigm:**
+- ✅ Early returns in `get_git_status_info`
+- ✅ No else statements after returns
+- ✅ Maximum indentation levels respected
+- ✅ Single responsibility per function
+
+### User Experience Improvements
+
+**Before (v2):**
+```
+Staging all changes...
+Generating commit message with AI...
+Commit message: Update 3 files
+Changes committed successfully!
+```
+
+**After (v3):**
+```
+Staging all changes...
+
+Staged 3 file(s):
+  [Modified] meerkat.py
+  [Added] agents/features/2_feat_add_better_logs.md
+  [Modified] agents/MEMORY.md
+
++150 lines added, -20 lines removed
+
+Generating commit message with AI...
+Context being used:
+  - Git diff (staged changes)
+  - AI Agent: copilot
+
+Commit message preview:
+──────────────────────────────────────────────────
+feat: Add better logging for file operations
+──────────────────────────────────────────────────
+
+Changes committed successfully!
+```
+
+### Files Modified Summary
+
+1. **meerkat.py**
+   - Line ~141: New `get_git_status_info()` function
+   - Line ~420: Enhanced file staging logs in `handle_save_command()`
+   - Line ~241: Added AI context logging in `get_ai_commit_message()`
+   - Line ~466: Added commit message preview display
+
+### Impact on Commands
+
+**SAVE Command:**
+- Now shows detailed staging information
+- Displays AI context being used
+- Shows commit message preview
+- All improvements respect `--quiet` flag
+
+**UPDATE Command:**
+- Inherits all SAVE improvements (via function call)
+- Additionally shows push information
+- Complete visibility from staging to push
+
+### Adherence to Requirements ✓
+
+- ✅ Better logs showing what's happening
+- ✅ All files being added are displayed
+- ✅ Number of lines added and removed shown
+- ✅ AI context explanation provided
+- ✅ Commit message shown before execution
+- ✅ All improvements respect quiet/verbose modes
+- ✅ PEP8 compliant
+- ✅ Functional paradigm maintained
+- ✅ No breaking changes to existing functionality
