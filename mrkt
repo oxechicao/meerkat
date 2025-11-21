@@ -1,0 +1,14 @@
+#!/bin/bash
+# Wrapper script to run meerkat.py with the virtual environment
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VENV_PYTHON="${SCRIPT_DIR}/.venv/bin/python"
+MEERKAT_SCRIPT="${SCRIPT_DIR}/meerkat.py"
+
+if [ ! -f "$VENV_PYTHON" ]; then
+    echo "Error: Virtual environment not found. Please run the setup script first."
+    echo "RUN: bash init_py.sh"
+    exit 1
+fi
+
+"$VENV_PYTHON" "$MEERKAT_SCRIPT" "$@"

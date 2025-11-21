@@ -1,0 +1,26 @@
+# Meerkat Configuration File
+# Place this file at the root of your project (same level as .git folder)
+
+# Agent name that will run the CLI (default: copilot)
+# MRKT_AGENT=copilot
+
+# Path of CLI executable (overrides MRKT_AGENT if defined)
+# MRKT_AGENT_PATH=/path/to/ai/cli
+
+# Default prefix used when creating branches (default: mrkt)
+# MRKT_PREFIX=mrkt
+
+# Default string to be added after prefix (default: /)
+# MRKT_PREFIX_SEPARATOR=/
+
+# Always run in quiet mode (default: false)
+# MRKT_ALWAYS_QUIET=false
+
+# Set --no-verify for commits and push (default: false)
+# MRKT_NO_VERIFY=false
+
+# Set --no-verify for commits only (overrides MRKT_NO_VERIFY)
+# MRKT_NO_VERIFY_COMMIT=false
+
+# Set --no-verify for push only (overrides MRKT_NO_VERIFY)
+# MRKT_NO_VERIFY_PUSH=false
