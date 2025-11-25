@@ -1149,6 +1149,50 @@ and it keeps the annotations clear and compatible.
 - Consider using `from __future__ import annotations` project-wide to
     postpone evaluation of annotations (this also helps compatibility).
 
+---
+
+## Task: 7 - TEST: Add unit tests for `src/`
+
+### Objective
+Write unit tests for all files in `src/` with high coverage using
+pytest. Prefer minimal mocking and exercise public functions.
+
+### What I added
+- `tests/test_git.py` — tests for `run_command`, `get_current_branch`,
+    `get_git_status_info`, `create_and_push_branch`, `perform_rebase`, and `perform_merge`.
+- `tests/test_message.py` — tests for `print_message`, `print_error`,
+    `save_reference_to_file`, `generate_simple_commit_message` and a basic
+    `get_ai_commit_message` fallback behavior.
+- `tests/test_agent_modules.py` — tests for `prompt.parse_output_message`,
+    `agent_copilot.generate_commit_message_with_copilot`, and
+    `agent_codex.generate_commit_message_with_codex` (monkeypatching
+    `subprocess.run` to simulate AI CLI output).
+- `tests/test_input_main.py` — tests for `create_parser`,
+    `parse_config_file`, `find_config_file`, and `is_quiet_mode`.
+- `tests/test_handlers.py` — tests for `handle_start`, `handle_save`,
+    and `handle_update` helpers and basic flows (monkeypatching
+    `run_command` and other external calls).
+
+### Notes on approach
+- Used `monkeypatch` to stub external calls (`subprocess.run`,
+    `run_command`) so tests run quickly and deterministically.
+- Kept tests focused on behavior rather than implementation details.
+- Wrote file-system tests using `tmp_path` where needed (e.g., for
+    `save_reference_to_file` and config file parsing).
+
+### How to run tests locally
+Install pytest if not present and run:
+
+```bash
+python -m pip install pytest
+pytest -q
+```
+
+### Next steps
+- Run the full test suite and fix any failing tests in CI.
+- Optionally add a coverage check (e.g. `pytest --cov=src`) and enforce
+    100% coverage if required by the project.
+
 # MEMORY BANK for Meerkat CLI Implementation - Step-by-Step Process
 
 ## Task: 0 - FEATURE: Initial implementation
