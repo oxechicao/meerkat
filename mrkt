@@ -1,7 +1,13 @@
 #!/bin/bash
 # Wrapper script to run meerkat.py with the virtual environment
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_SOURCE="${BASH_SOURCE[0]}"
+while [ -L "$SCRIPT_SOURCE" ]; do
+    DIR="$(cd -P "$(dirname "$SCRIPT_SOURCE")" && pwd)"
+    SCRIPT_SOURCE="$(readlink "$SCRIPT_SOURCE")"
+    [[ "$SCRIPT_SOURCE" != /* ]] && SCRIPT_SOURCE="$DIR/$SCRIPT_SOURCE"
+done
+SCRIPT_DIR="$(cd -P "$(dirname "$SCRIPT_SOURCE")" && pwd)"
 VENV_PYTHON="${SCRIPT_DIR}/.venv/bin/python"
 MEERKAT_SCRIPT="${SCRIPT_DIR}/meerkat.py"
 
@@ -10,5 +16,9 @@ if [ ! -f "$VENV_PYTHON" ]; then
     echo "RUN: bash init_py.sh"
     exit 1
 fi
+
+echo $SCRIPT_DIR
+echo $VENV_PYTHON
+echo $MEERKAT_SCRIPT
 
 "$VENV_PYTHON" "$MEERKAT_SCRIPT" "$@"
