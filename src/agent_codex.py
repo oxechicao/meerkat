@@ -1,19 +1,18 @@
 """
-Copilot agent for generating commit messages.
+Codex agent for generating commit messages.
 
-This module now delegates shared prompt text and parsing logic to
-`src.prompt`. The Copilot-specific generator simply calls the
-`copilot` CLI with the shared prompt and uses the shared parser to
-extract a conventional commit message.
+This agent reuses the shared prompt and parsing utilities in `src.prompt`.
+It calls the `codex` CLI (instead of `copilot`) and returns the parsed
+conventional commit message when available.
 """
 import subprocess
 
 from .prompt import prompt, parse_output_message
 
 
-def generate_commit_message_with_copilot(story_file=None):
+def generate_commit_message_with_codex(story_file=None):
     """
-    Generate a commit message using GitHub Copilot CLI.
+    Generate a commit message using a Codex CLI.
 
     Args:
         story_file (str, optional): Path to the story file for context.
@@ -21,16 +20,13 @@ def generate_commit_message_with_copilot(story_file=None):
     Returns:
         str or None: The generated commit message, or None if failed.
     """
-    # Build the command prompt from the shared base prompt. Do not mutate
-    # the imported `prompt` variable; extend it into a new string when
-    # additional context is provided.
     command_prompt = prompt
     if story_file:
         command_prompt = f"{command_prompt} Also, uses as context reference the story on @{story_file}"
 
     try:
         result = subprocess.run(
-            f'copilot -p "{command_prompt}" --allow-all-tools',
+            f'codex "{command_prompt}"',
             shell=True,
             capture_output=True,
             text=True,
@@ -42,8 +38,6 @@ def generate_commit_message_with_copilot(story_file=None):
                 return parsed
             return None
     except Exception:
-        # Fail silently and return None on any exception to preserve
-        # the original behavior of falling back to non-AI message.
         pass
 
     return None

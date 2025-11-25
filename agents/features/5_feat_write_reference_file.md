@@ -1,6 +1,7 @@
 # 5 - FEATURE: Write reference file and isolate copilot agent
 
 Always follow the definition in `AGENT.md` file and `README.md` file.
+Use `MEMORY.md` is the memory bank of the changes.
 
 ## Task Description
 
