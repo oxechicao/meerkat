@@ -2,6 +2,10 @@
 
 This is a commandline line tool that help you to work with AI libraries to support development.
 
+## Requirements
+
+- python3
+
 ## Installation
 
 1. Run the setup script:
