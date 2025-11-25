@@ -318,9 +318,9 @@ def handle_save_command(args, config):
 - Returns 0 on success
 
 **Arguments Supported:**
-- `--wip` - Add WIP prefix to commit message
+- `--wip` - Add WIP in title
 - `--rebase` - Rebase on main before commit
-- `--merge` - Merge main into branch before commit
+- `--merge` - Merge main before commit
 - `--story=<path>` - Story context file for AI
 - `--quiet` - Suppress output
 - `--verbose` - Show all messages
@@ -434,7 +434,7 @@ elif args.command == 'update':
 **PEP8 Compliance:**
 - ✅ Proper function naming
 - ✅ Docstrings for all functions
-- ✅ Appropriate spacing
+- ✅ Appropriate spacing and formatting
 
 **Functional Paradigm:**
 - ✅ Early returns (no else after validation)
@@ -774,6 +774,53 @@ Changes committed successfully!
 - ✅ AI context explanation provided
 - ✅ Commit message shown before execution
 - ✅ All improvements respect quiet/verbose modes
-- ✅ PEP8 compliant
-- ✅ Functional paradigm maintained
-- ✅ No breaking changes to existing functionality
+
+---
+
+## Task: 3 - FEATURE: Refactor: Split in files
+
+### Overview
+Refactored the codebase to split the monolithic `meerkat.py` into multiple files for better maintainability and separation of concerns, following the structure and requirements defined in `3_refactor_in_files.md`, `AGENT.md`, and `README.md`.
+
+### Step-by-Step Refactor Process
+
+#### Step 1: Create `src` Directory
+- Created a new `src` directory to house all source code modules.
+- Added an empty `__init__.py` to make it a Python package.
+
+#### Step 2: Create `git.py`
+- Created `src/git.py`.
+- Moved all functions related to running git commands and git operations from `meerkat.py` to this file:
+  - `run_command`, `get_current_branch`, `get_git_status_info`, `create_and_push_branch`, `perform_rebase`, `perform_merge`.
+
+#### Step 3: Create `message.py`
+- Created `src/message.py`.
+- Moved all functions related to building and generating commit messages from `meerkat.py` to this file:
+  - `print_message`, `print_error`, `get_ai_commit_message`, `generate_simple_commit_message`.
+
+#### Step 4: Create `input.py`
+- Created `src/input.py`.
+- Moved all argument parsing and input validation logic from `meerkat.py` to this file:
+  - `create_parser` and related argument parser setup.
+
+#### Step 5: Create `main.py`
+- Created `src/main.py`.
+- Moved the main entry point logic and command routing from `meerkat.py` to this file:
+  - `main`, `load_config`, `find_config_file`, `parse_config_file`, `is_quiet_mode`, `handle_start_command`, `handle_save_command`, `handle_update_command`, `build_branch_name`, `determine_prefix`, `build_commit_command`, `build_push_command`.
+- Updated all imports to use the new module structure.
+
+#### Step 6: Refactor `meerkat.py` to Thin Entry Point
+- Replaced all logic in `meerkat.py` with a minimal script that imports and calls `main()` from `src/main.py`.
+- Ensured the CLI still works as the entry point for the `mrkt` script.
+
+#### Step 7: Test and Validate
+- Verified that all commands (`start`, `save`, `update`, `help`) work as expected after the refactor.
+- Ensured all modules are imported correctly and the CLI is functional.
+
+#### Step 8: Document in MEMORY.md
+- Added this step-by-step description to `MEMORY.md` for future reference and traceability.
+
+### Result
+- The codebase is now modular, easier to maintain, and follows the project structure and coding standards defined in `AGENT.md` and `README.md`.
+- All logic is separated by concern: git operations, message building, input parsing, and main entry point.
+- The refactor is fully documented for future contributors.
