@@ -1,10 +1,42 @@
 # Agents definitions
 
+- [Agents definitions](#agents-definitions)
+  - [Files structure](#files-structure)
+  - [Coding](#coding)
+    - [General instructions](#general-instructions)
+    - [Coding rules](#coding-rules)
+      - [Conditionals:](#conditionals)
+        - [Correct code example](#correct-code-example)
+        - [Incorrect code example](#incorrect-code-example)
+      - [Loops:](#loops)
+        - [Correct code example](#correct-code-example-1)
+        - [Incorrect code example](#incorrect-code-example-1)
+      - [Functions:](#functions)
+        - [Correct code example:](#correct-code-example-2)
+        - [Incorrect code example:](#incorrect-code-example-2)
+
+## Files structure
+
+- `.` or `root`: contains scripts and documents for initialization.
+  - `AGENT.md`:
+    - Contains instructions that have be followed by the AI AGENTS.
+  - `README.md`
+    - Contain the definitions about the project.
+- `./agents`: Contain files that should be used by AI agents
+  - `features/`:
+    - Folder that contains the features that should be implemented.
+    - The features are enumerated sequentially, it represent the timestamp for implementation.
+  - `MEMORY.md`: 
+    - Memory bank for agents actions.
+    - It contains all steps made by agents
+    - Should be used as reference
+- `./src/`: Source code
+
 ## Coding
 
 ### General instructions
 
-- Use the python best practicies
+- Use the python best practices
 - Use pep8 definition
     - Use flake8 for linting
 - Use functional paradigm
