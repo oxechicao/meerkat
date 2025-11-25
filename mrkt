@@ -17,8 +17,4 @@ if [ ! -f "$VENV_PYTHON" ]; then
     exit 1
 fi
 
-echo $SCRIPT_DIR
-echo $VENV_PYTHON
-echo $MEERKAT_SCRIPT
-
 "$VENV_PYTHON" "$MEERKAT_SCRIPT" "$@"
