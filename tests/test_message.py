@@ -40,3 +40,35 @@ def test_get_ai_commit_message_fallback(monkeypatch, tmp_path):
     cfg = {}
     res = message.get_ai_commit_message(cfg, None, quiet=True)
     assert res is None or isinstance(res, str)
+
+
+def test_get_ai_commit_message_uses_copilot_module(monkeypatch, tmp_path):
+    # Simulate staged diff and that copilot module returns a message
+    monkeypatch.setattr(message, 'run_command', lambda *a, **k: 'diff --git a/foo b/foo\n')
+    monkeypatch.setattr(message, 'save_reference_to_file', lambda *a, **k: None)
+
+    # Fake the copilot module function
+    monkeypatch.setattr(
+        'src.agent_copilot.generate_commit_message_with_copilot',
+        lambda story: 'feat(scope): copilot generated'
+    )
+
+    cfg = {'MRKT_AGENT': 'copilot'}
+    res = message.get_ai_commit_message(cfg, None, quiet=True)
+    assert isinstance(res, str)
+    assert res.startswith('feat(')
+
+
+def test_get_ai_commit_message_uses_codex_module(monkeypatch, tmp_path):
+    # Simulate staged diff and that codex module returns a message
+    monkeypatch.setattr(message, 'run_command', lambda *a, **k: 'diff --git a/foo b/foo\n')
+
+    monkeypatch.setattr(
+        'src.agent_codex.generate_commit_message_with_codex',
+        lambda story: 'feat(scope): codex generated'
+    )
+
+    cfg = {'MRKT_AGENT': 'codex'}
+    res = message.get_ai_commit_message(cfg, None, quiet=True)
+    assert isinstance(res, str)
+    assert res.startswith('feat(')

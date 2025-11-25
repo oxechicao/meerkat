@@ -2,16 +2,17 @@
 
 This file describe the context for agents to works. It is divided into project, contexts, coding standards.
 
-- [Agents definitions](#agents-definitions)
-    - [Project Overview](#project-overview)
-        - [TLDR](#tldr)
-        - [Tech stack$$](#tech-stack)
-        - [Files structure](#files-structure)
-    - [Development instructions](#development-instructions)
-        - [DO](#do)
-            - [Code style guidelines](#code-style-guidelines)
-            - [Test guidelines](#test-guidelines)
-        - [DON'T](#dont)
+- [Project Overview](#project-overview)
+    - [TLDR](#tldr)
+    - [Tech stack$$](#tech-stack)
+    - [Files structure](#files-structure)
+- [Commands](#commands)
+- [Development instructions](#development-instructions)
+    - [DO](#do)
+        - [Code style guidelines](#code-style-guidelines)
+        - [Test guidelines](#test-guidelines)
+    - [DON'T](#dont)
+- [Memory instruction](#memory-instruction)
 
 
 ## Project Overview
@@ -39,14 +40,17 @@ The project is a command-line tool built in python to help developer write git m
 | `src/`             | Source code of the project                                                                    |
 | `tests/`           | Tes folder                                                                                    |
 
+## Commands
+
+- USE `.venv/bin/python` to run python command;
+- USE `.venv/bin/flake8` to run flake8;
+- USE `.venv/bin/pytest` to run tests;
+
 ## Development instructions
 
 ### DO
 
 - USE Testing Driven Development approach;
-- USE `.venv/bin/python` to run python command;
-- USE `.venv/bin/flake8` to run flake8;
-- USE `.venv/bin/pytest` to run tests;
 - ALWAYS write the test first;
 - ALWAYS run `pytest` only for the current `file:function` during the development;
 - ONLY run a complete test when finish the development: `.venv/bin/pytest`
@@ -106,3 +110,10 @@ The project is a command-line tool built in python to help developer write git m
 - DO NOT use ELSE statement;
 - DO NOT write nested loops;
 - NEVER run test in quiet mode;
+
+## Memory instruction
+
+- All changes result should be written in `agents/MEMORY.md` file
+- The file is written in markdown
+- ONLY add new description for the current prompt
+- NEVER change the current data.

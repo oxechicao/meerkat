@@ -1,5 +1,16 @@
-````markdown
 # MEMORY BANK for Meerkat CLI Implementation - Step-by-Step Process
+
+Instructions:
+
+- Task file are written in the HEADER 2: `##`
+- All task should start defining the agent + prompt + model in a table:
+    | Agent   | Model        | Prompt         |
+    | ------- | ------------ | -------------- |
+    | copilot | gpt-5.1-mini | My prompt used |
+- Should be written in details.
+- Should be written in a way that helps AI Agents to understand
+- ALWAYS add a empty blank line after headers
+- ALWAYS add a blank line before and after a list, ordered or not.
 
 ## Task: 0 - FEATURE: Initial implementation
 Implement a command-line tool based on specifications in README.md, following Python best practices, PEP8, and functional paradigm principles.
@@ -787,6 +798,50 @@ Changes committed successfully!
    - Line ~241: Added AI context logging in `get_ai_commit_message()`
    - Line ~466: Added commit message preview display
 
+
+## Task: 8 - FEATURE: add codex option to generate message
+
+Overview:
+
+- Added centralized agent selection flow and support for a `codex` agent.
+
+Files changed:
+
+- `src/message.py`:
+    - Added `get_agent_message(config, diff, story_file=None, quiet=False)` to
+        centralize logic for selecting and calling AI agents.
+    - Refactored `get_ai_commit_message` to read staged diff and delegate to
+        `get_agent_message`.
+
+Behavior details:
+
+- If `MRKT_AGENT` is not set or empty, `get_agent_message` returns the simple
+    fallback from `generate_simple_commit_message(diff)`.
+- If `MRKT_AGENT` == `copilot`:
+    - Creates `temp_git_message_reference.md` from the staged diff.
+    - Calls `src.agent_copilot.generate_commit_message_with_copilot(story_file)`.
+    - Removes the temp file and returns the parsed commit message if present.
+    - Falls back to `generate_simple_commit_message(diff)` on failure.
+- If `MRKT_AGENT` == `codex`:
+    - Calls `src.agent_codex.generate_commit_message_with_codex(story_file)`.
+    - Returns parsed message or falls back to simple generator on failure.
+- Otherwise:
+    - Attempts to call the configured `MRKT_AGENT_PATH` or agent name as a
+        CLI (`<agent> -p "<prompt>"`).
+    - Falls back to simple generator on failure.
+
+Tests:
+
+- `tests/test_message.py` updated to include tests for both `copilot` and
+    `codex` branches (mocking the agent modules and staged diff).
+
+Rationale:
+
+- Centralizes agent selection and reduces duplication across AI flows.
+- Makes it straightforward to add new agents in the future by extending the
+    `get_agent_message` function.
+
+
 ### Impact on Commands
 
 **SAVE Command:**
@@ -1040,8 +1095,6 @@ else:
 - ✅ All changes documented in MEMORY.md
 - ✅ Follows AGENT.md and README.md definitions
 - ✅ Maintains functional paradigm and PEP8 compliance
-
-````
 
 ## Task: 6 - FEATURE: Codex Agent
 
